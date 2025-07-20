@@ -21,3 +21,6 @@ git clone https://github.com/username/mexscan.git
 cd mexscan
 pip install -r requirements.txt
 python3 mexscan.py http://target.com
+
+#GUI_RUN 
+python3 mexscan_gui.py 
