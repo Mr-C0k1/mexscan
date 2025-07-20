@@ -24,3 +24,7 @@ python3 mexscan.py http://target.com
 
 #GUI_RUN 
 python3 mexscan_gui.py 
+
+#validation ssl no detection warning 
+pip install urllib3   >>> install
+
