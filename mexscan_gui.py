@@ -9,6 +9,7 @@ from tkinter import messagebox, scrolledtext
 import requests
 import urllib.parse
 from bs4 import BeautifulSoup
+import threading
 
 # Konfigurasi dasar
 HEADERS = {"User-Agent": "Mozilla/5.0"}
@@ -26,6 +27,8 @@ XXE_PAYLOAD = """<?xml version="1.0"?><!DOCTYPE foo [ <!ELEMENT foo ANY >
 def inject_params(url, payload):
     parsed = urllib.parse.urlparse(url)
     query = urllib.parse.parse_qs(parsed.query)
+    if not query:
+        return url
     new_query = {k: [payload] for k in query}
     return parsed._replace(query=urllib.parse.urlencode(new_query, doseq=True)).geturl()
 
@@ -94,29 +97,31 @@ def scan_vuln(url, text_widget):
     text_widget.insert(tk.END, "\n[Scan Selesai]\n")
     for k, v in results.items():
         text_widget.insert(tk.END, f"{k} ditemukan: {len(v)}\n")
+    text_widget.see(tk.END)
 
 # GUI
 def start_gui():
     window = tk.Tk()
-    window.title("MexScan GUI")
-    window.geometry("800x500")
+    window.title("MexScan GUI - Web Vulnerability Scanner")
+    window.geometry("820x520")
 
     tk.Label(window, text="Target URL:").pack(pady=5)
-    url_entry = tk.Entry(window, width=80)
-    url_entry.pack()
+    url_entry = tk.Entry(window, width=90)
+    url_entry.pack(pady=5)
 
     output_box = scrolledtext.ScrolledText(window, width=100, height=25)
     output_box.pack(pady=10)
 
-    def run_scan():
+    def run_scan_thread():
         target = url_entry.get().strip()
         if not target.startswith("http"):
             messagebox.showerror("Invalid URL", "URL harus diawali dengan http:// atau https://")
             return
         output_box.delete(1.0, tk.END)
-        scan_vuln(target, output_box)
+        threading.Thread(target=scan_vuln, args=(target, output_box), daemon=True).start()
 
-    tk.Button(window, text="Mulai Scan", command=run_scan).pack(pady=5)
+    tk.Button(window, text="Mulai Scan", command=run_scan_thread, bg="green", fg="white", padx=10, pady=5).pack(pady=10)
+
     window.mainloop()
 
 if __name__ == "__main__":
